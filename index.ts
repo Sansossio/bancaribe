@@ -112,8 +112,11 @@ const getMovements = async (id: string) => {
     }
   });
 
-  const { data: movements } = await instance.get(
-    '/app/v1/business/consulta/cuentabs/umovimiento',
+  const currentMonth = new Date().getMonth() + 1;
+
+  const { data: movements } = await instance.post(
+    '/app/v1/business/consulta/cuentabs/mensualmovimiento',
+    `mes=${currentMonth}`,
     {
       headers: {
         'Content-Type': contentType
@@ -122,7 +125,9 @@ const getMovements = async (id: string) => {
   );
 
   const [dataSetInitializer] = movements.split('\n');
-  let dataSet: any[] = eval(dataSetInitializer.split('var dataSet = ')[1].split(';')[0]);
+  // regex 'var dataSet[\\d?] = '
+  const splitRegex = /var dataSet[\d?] = /g;
+  let dataSet: any[] = eval(dataSetInitializer.split(splitRegex)[1].split(';')[0]);
 
   return dataSet.map((data: any) => TransactionDto.fromScrapper(data));
 }
